@@ -1,0 +1,7 @@
+{
+  "name": "easy-stock",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
