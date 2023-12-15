@@ -1,4 +1,9 @@
-<ion-header [translucent]="true">
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'es-data',
+  template: `
+    <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>
       Tab 2
@@ -15,3 +20,12 @@
 
   <app-explore-container name="Tab 2 page"></app-explore-container>
 </ion-content>
+
+  `,
+  styles: [``]
+})
+export class DataPage {
+
+  constructor() { }
+
+}
