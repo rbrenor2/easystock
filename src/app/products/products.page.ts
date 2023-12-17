@@ -24,10 +24,11 @@ import { Product } from '../shared/models/product.model';
         </ion-fab>
         <ion-list>
           <ion-item button *ngFor="let product of products; let index" (click)="onTapProduct(product)">
-            <!-- <ion-avatar slot="start">
+            <ion-avatar slot="start">
               <img [src]="'https://picsum.photos/80/80?random=' + index" alt="avatar" />
-            </ion-avatar> -->
+            </ion-avatar>
             <ion-label>{{ product.name }}</ion-label>
+            <ion-text>{{ product.quantity }}</ion-text>
           </ion-item>
         </ion-list>
         <ion-infinite-scroll (ionInfinite)="onLoadMore($event)">
