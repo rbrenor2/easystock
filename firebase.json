@@ -3,7 +3,6 @@
     {
       "public": "www",
       "target": "app",
-      "source": ".",
       "frameworksBackend": {},
       "ignore": [
         "firebase.json",
