@@ -18,5 +18,5 @@ jobs:
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_EASYSTOCK_C61A7 }}'
           channelId: live
           projectId: easystock-c61a7
-      - env:
-        FIREBASE_CLI_EXPERIMENTS: webframeworks
+        env:
+          FIREBASE_CLI_EXPERIMENTS: webframeworks
