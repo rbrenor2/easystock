@@ -1,0 +1,21 @@
+{
+  "hosting": [
+    {
+      "public": "www",
+      "target": "app",
+      "source": ".",
+      "frameworksBackend": {},
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
+    }
+  ]
+}
