@@ -1,0 +1,14 @@
+{
+  "targets": {
+    "easystock-c61a7": {
+      "hosting": {
+        "app": [
+          "easystock-c61a7"
+        ]
+      }
+    }
+  },
+  "projects": {
+    "default": "easystock-c61a7"
+  }
+}

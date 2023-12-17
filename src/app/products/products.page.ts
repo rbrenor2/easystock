@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { ProductDetailModalComponent } from './components/product-detail-modal.component';
 import { AddDataModalComponent } from './components/add-data-modal.component';
+import { Product } from '../shared/models/product.model';
 
 @Component({
   selector: 'es-products-page',
@@ -22,11 +23,11 @@ import { AddDataModalComponent } from './components/add-data-modal.component';
           </ion-fab-button>
         </ion-fab>
         <ion-list>
-          <ion-item button *ngFor="let item of items; let index" (click)="onTapProduct(item)">
+          <ion-item button *ngFor="let product of products; let index" (click)="onTapProduct(product)">
             <!-- <ion-avatar slot="start">
               <img [src]="'https://picsum.photos/80/80?random=' + index" alt="avatar" />
             </ion-avatar> -->
-            <ion-label>{{ item.name }}</ion-label>
+            <ion-label>{{ product.name }}</ion-label>
           </ion-item>
         </ion-list>
         <ion-infinite-scroll (ionInfinite)="onLoadMore($event)">
@@ -40,7 +41,7 @@ export class ProductsPage {
 
   filter: string = ""
 
-  items = [{ name: "Ovo frito" }, { name: "Rã 500g" }, { name: "Melancia 500g" }]
+  products: Product[] = [{ id: "asdffvytr", name: "Ovo frito", quantity: 12, pricePerUnit: 26.90 }, { id: "989898", name: "Rã 500g", quantity: 24, pricePerUnit: 23.90 }, { id: "potmigrtoig", name: "Pirulito 500g", quantity: 9, pricePerUnit: 32.90 }]
 
   constructor(private modalCtrl: ModalController) { }
 
@@ -56,10 +57,15 @@ export class ProductsPage {
     const { data, role } = await modal.onWillDismiss();
   }
 
-  async onTapProduct(item: any) {
+  async onTapProduct(product: Product) {
     // Go to product detail page or open a dialog to update
     const modal = await this.modalCtrl.create({
       component: ProductDetailModalComponent,
+      initialBreakpoint: 0.5,
+      breakpoints: [0.5, 0.75],
+      componentProps: {
+        product,
+      }
     });
     modal.present();
 
