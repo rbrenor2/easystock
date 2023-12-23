@@ -1,8 +1,9 @@
 import { Component } from '@angular/core';
-import { ModalController } from '@ionic/angular';
+import { InfiniteScrollCustomEvent, ModalController } from '@ionic/angular';
 import { ProductDetailModalComponent } from './components/product-detail-modal.component';
 import { AddDataModalComponent } from './components/add-data-modal.component';
 import { Product } from '../shared/models/product.model';
+import { ProductsService } from '../services/products.service';
 
 @Component({
   selector: 'es-products-page',
@@ -42,14 +43,24 @@ export class ProductsPage {
 
   filter: string = ""
 
-  products: Product[] = [{ id: "asdffvytr", name: "Ovo frito", quantity: 12, pricePerUnit: 26.90 }, { id: "989898", name: "Rã 500g", quantity: 24, pricePerUnit: 23.90 }, { id: "potmigrtoig", name: "Pirulito 500g", quantity: 9, pricePerUnit: 32.90 }]
+  products: Product[] = []
 
-  constructor(private modalCtrl: ModalController) { }
+  constructor(private modalCtrl: ModalController, private productsService: ProductsService) { }
 
-  onLoadMore(event: any) { }
+  ngOnInit(): void {
+    this.onLoadMore(null)
+  }
+
+  onLoadMore(event: any) {
+    this.productsService.getProductsPage().subscribe((res) => {
+      this.products = res.docs.map(doc => doc.data()) as Product[]
+      setTimeout(() => {
+        (event as InfiniteScrollCustomEvent)?.target?.complete();
+      }, 500);
+    })
+  }
 
   async addSheet() {
-    // Go to product detail page or open a dialog to update
     const modal = await this.modalCtrl.create({
       component: AddDataModalComponent,
     });
@@ -59,7 +70,6 @@ export class ProductsPage {
   }
 
   async onTapProduct(product: Product) {
-    // Go to product detail page or open a dialog to update
     const modal = await this.modalCtrl.create({
       component: ProductDetailModalComponent,
       initialBreakpoint: 0.5,
@@ -71,8 +81,6 @@ export class ProductsPage {
     modal.present();
 
     const { data, role } = await modal.onWillDismiss();
-
-
   }
 
 }

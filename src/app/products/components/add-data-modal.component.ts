@@ -42,10 +42,10 @@ import * as XLSX from 'xlsx'
 })
 export class AddDataModalComponent {
   form = this.fb.group({
-    id: [null],
-    name: [null],
-    quantity: [null],
-    price: [null]
+    id: ['Codigo'],
+    name: ['Produto'],
+    quantity: ['Quantidade'],
+    price: ['Preco']
   })
 
   data: any;

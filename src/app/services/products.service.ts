@@ -1,25 +1,47 @@
-import { HttpClient } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
-import { CollectionReference, DocumentReference, Firestore, addDoc, collection, doc, runTransaction, writeBatch } from '@angular/fire/firestore';
-import { Observable, of } from 'rxjs';
-import { Product } from '../shared/models/product.model';
+import { Injectable, inject, signal } from '@angular/core';
+import { Firestore, collection, doc, getDocs, limit, orderBy, query, runTransaction, startAfter } from '@angular/fire/firestore';
+import { from, of } from 'rxjs';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProductsService {
   firestore: Firestore = inject(Firestore);
-  productsCollection: CollectionReference;
+  productsPath: string;
 
-  constructor() {
-    this.productsCollection = collection(this.firestore, 'products');
+  currentPage = signal(1)
+  pageSize = signal(5)
+
+  constructor(private authService: AuthService) {
+    this.productsPath = `organizations/${this.authService.organization()}/products`
+  }
+
+  getProductsPage() {
+    if (this.currentPage() === 1) {
+      const first = query(collection(this.firestore, this.productsPath), orderBy("name"), limit(this.pageSize()));
+
+      this.currentPage.update(value => value + 1)
+      return from(getDocs(first))
+    } else {
+      const next =
+        query(
+          collection(this.firestore, this.productsPath),
+          orderBy("name"),
+          startAfter(this.currentPage() * this.pageSize()),
+          limit(this.pageSize())
+        );
+
+      this.currentPage.update(value => value + 1)
+      return from(getDocs(next))
+    }
   }
 
   addProducts(columns: any, data: any[]) {
     try {
       data.forEach((item: any) => {
         const newPopulation = of(runTransaction(this.firestore, async (transaction) => {
-          const productRef = doc(this.firestore, "products", item[columns["id"]]);
+          const productRef = doc(this.firestore, this.productsPath, item[columns["id"]].toString());
           const productDoc = await transaction.get(productRef);
 
           if (productDoc.exists()) {
@@ -28,7 +50,7 @@ export class ProductsService {
           } else {
             transaction.set(productRef, { name: item[columns["name"]], quantity: item[columns["quantity"]], price: item[columns["price"]] })
           }
-        }));
+        })).subscribe((res) => console.log(res));
       })
     } catch (e) {
       // This will be a "population is too big" error.
