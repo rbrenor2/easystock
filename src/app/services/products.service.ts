@@ -45,7 +45,7 @@ export class ProductsService {
           const productDoc = await transaction.get(productRef);
 
           if (productDoc.exists()) {
-            const updatedProduct = productDoc.data()["quantity"] + item[columns["quantity"]]
+            const updatedProduct = { quantity: productDoc.data()["quantity"] + item[columns["quantity"]] }
             transaction.update(productRef, updatedProduct)
           } else {
             transaction.set(productRef, { id: item[columns["id"]].toString(), name: item[columns["name"]], quantity: item[columns["quantity"]], price: item[columns["price"]] })
