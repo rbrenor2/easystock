@@ -14,7 +14,7 @@ import { from } from 'rxjs';
           <ion-title>Produtos</ion-title>
         </ion-toolbar>
         <ion-toolbar>
-          <ion-searchbar show-clear-button="focus" [value]="filter" placeholder="Busque produtos por nome ou código"></ion-searchbar>
+          <ion-searchbar [debounce]="1000" (ionInput)="onSearch($event)" show-clear-button="focus" [value]="filter" placeholder="Busque produtos por nome"></ion-searchbar>
         </ion-toolbar>
       </ion-header>
 
@@ -50,6 +50,12 @@ export class ProductsPage {
 
   ngOnInit(): void {
     this.onLoadMore(null)
+  }
+
+  onSearch(event: any) {
+    this.productsService.getProductsPage(event.target.value).subscribe((res) => {
+      this.products = res.docs.map(doc => doc.data()) as Product[]
+    })
   }
 
   onLoadMore(event: any) {

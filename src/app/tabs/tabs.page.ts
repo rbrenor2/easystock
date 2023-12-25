@@ -11,10 +11,10 @@ import { Component } from '@angular/core';
           <ion-label>Produtos</ion-label>
         </ion-tab-button>
 
-        <ion-tab-button tab="data" href="/tabs/data">
+        <!-- <ion-tab-button tab="data" href="/tabs/data">
           <ion-icon aria-hidden="true" name="stats-chart-outline"></ion-icon>
           <ion-label>Dados</ion-label>
-        </ion-tab-button>
+        </ion-tab-button> -->
 
         
       </ion-tab-bar>

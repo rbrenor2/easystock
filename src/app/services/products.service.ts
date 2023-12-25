@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Firestore, collection, doc, getDocs, limit, orderBy, query, runTransaction, startAfter, updateDoc } from '@angular/fire/firestore';
+import { Firestore, collection, doc, getDocs, limit, or, orderBy, query, runTransaction, startAfter, updateDoc, where } from '@angular/fire/firestore';
 import { from, of } from 'rxjs';
 import { AuthService } from './auth.service';
 
@@ -11,30 +11,63 @@ export class ProductsService {
   productsPath: string;
 
   currentPage = signal(1)
-  pageSize = signal(5)
+  pageSize = signal(15)
 
   constructor(private authService: AuthService) {
     this.productsPath = `organizations/${this.authService.organization()}/products`
   }
 
-  getProductsPage() {
-    if (this.currentPage() === 1) {
-      const first = query(collection(this.firestore, this.productsPath), orderBy("name"), limit(this.pageSize()));
+  getProductsPage(filter?: string) {
+    if (filter) {
+      const constraints = where("name", '>=', filter)
 
-      this.currentPage.update(value => value + 1)
-      return from(getDocs(first))
-    } else {
-      const next =
-        query(
+      if (this.currentPage() === 1) {
+        const first = query(
           collection(this.firestore, this.productsPath),
+          constraints,
           orderBy("name"),
-          startAfter(this.currentPage() * this.pageSize()),
           limit(this.pageSize())
         );
 
-      this.currentPage.update(value => value + 1)
-      return from(getDocs(next))
+        this.currentPage.update(value => value + 1)
+        return from(getDocs(first))
+      } else {
+        const next =
+          query(
+            collection(this.firestore, this.productsPath),
+            constraints,
+            orderBy("name"),
+            startAfter(this.currentPage() * this.pageSize()),
+            limit(this.pageSize())
+          );
+
+        this.currentPage.update(value => value + 1)
+        return from(getDocs(next))
+      }
+    } else {
+      if (this.currentPage() === 1) {
+        const first = query(
+          collection(this.firestore, this.productsPath),
+          orderBy("name"),
+          limit(this.pageSize())
+        );
+
+        this.currentPage.update(value => value + 1)
+        return from(getDocs(first))
+      } else {
+        const next =
+          query(
+            collection(this.firestore, this.productsPath),
+            orderBy("name"),
+            startAfter(this.currentPage() * this.pageSize()),
+            limit(this.pageSize())
+          );
+
+        this.currentPage.update(value => value + 1)
+        return from(getDocs(next))
+      }
     }
+
   }
 
   addProducts(columns: any, data: any[]) {
