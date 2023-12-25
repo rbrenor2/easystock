@@ -4,6 +4,7 @@ import { ProductDetailModalComponent } from './components/product-detail-modal.c
 import { AddDataModalComponent } from './components/add-data-modal.component';
 import { Product } from '../shared/models/product.model';
 import { ProductsService } from '../services/products.service';
+import { from } from 'rxjs';
 
 @Component({
   selector: 'es-products-page',
@@ -65,8 +66,6 @@ export class ProductsPage {
       component: AddDataModalComponent,
     });
     modal.present();
-
-    const { data, role } = await modal.onWillDismiss();
   }
 
   async onTapProduct(product: Product) {
@@ -80,7 +79,9 @@ export class ProductsPage {
     });
     modal.present();
 
-    const { data, role } = await modal.onWillDismiss();
+    from(modal.onWillDismiss()).subscribe(_ => {
+      this.onLoadMore(null)
+    })
   }
 
 }

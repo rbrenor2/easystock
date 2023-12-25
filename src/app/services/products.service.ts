@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Firestore, collection, doc, getDocs, limit, orderBy, query, runTransaction, startAfter } from '@angular/fire/firestore';
+import { Firestore, collection, doc, getDocs, limit, orderBy, query, runTransaction, startAfter, updateDoc } from '@angular/fire/firestore';
 import { from, of } from 'rxjs';
 import { AuthService } from './auth.service';
 
@@ -40,7 +40,7 @@ export class ProductsService {
   addProducts(columns: any, data: any[]) {
     try {
       data.forEach((item: any) => {
-        const newPopulation = of(runTransaction(this.firestore, async (transaction) => {
+        of(runTransaction(this.firestore, async (transaction) => {
           const productRef = doc(this.firestore, this.productsPath, item[columns["id"]].toString());
           const productDoc = await transaction.get(productRef);
 
@@ -48,7 +48,7 @@ export class ProductsService {
             const updatedProduct = productDoc.data()["quantity"] + item[columns["quantity"]]
             transaction.update(productRef, updatedProduct)
           } else {
-            transaction.set(productRef, { name: item[columns["name"]], quantity: item[columns["quantity"]], price: item[columns["price"]] })
+            transaction.set(productRef, { id: item[columns["id"]].toString(), name: item[columns["name"]], quantity: item[columns["quantity"]], price: item[columns["price"]] })
           }
         })).subscribe((res) => console.log(res));
       })
@@ -56,22 +56,13 @@ export class ProductsService {
       // This will be a "population is too big" error.
       console.error(e);
     }
-
-
-    // const batch = writeBatch(this.firestore);
-
-    // data.forEach((item: any) => {
-    //   const productRef = doc(this.firestore, "products", item[columns["id"]]);
-
-    //   batch.set(
-    //     productRef, { name: item[columns["name"]], quantity: item[columns["quantity"]], price: item[columns["price"]] }
-    //   )
-    // })
-
-    // return of(batch.commit())
   }
 
-  upsertProduct(id: string) {
-
+  updateProduct(id: string, newQuantity: number) {
+    try {
+      return from(updateDoc(doc(this.firestore, this.productsPath, id.toString()), { quantity: newQuantity }))
+    } catch (e) {
+      return of(e)
+    }
   }
 }

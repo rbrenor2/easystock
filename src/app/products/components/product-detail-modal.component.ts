@@ -1,6 +1,6 @@
-import { Component, Input, OnInit, computed, signal } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { Component, Input, signal } from '@angular/core';
 import { ModalController } from '@ionic/angular';
+import { ProductsService } from 'src/app/services/products.service';
 import { Product } from 'src/app/shared/models/product.model';
 
 @Component({
@@ -13,11 +13,17 @@ import { Product } from 'src/app/shared/models/product.model';
           </ion-buttons>
           <ion-title>Atualizar produto</ion-title>
           <ion-buttons slot="end">
-            <ion-button (click)="confirm()" [strong]="true">Adicionar</ion-button>
+            <ion-button (click)="confirm()" [strong]="true">Confirmar</ion-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-header>
         <ion-content class="ion-padding">
+            <ion-toast
+              [isOpen]="showAlert()"
+              [message]="alertMessage()"
+              [duration]="3000"
+              (didDismiss)="showAlert.set(false)"
+            ></ion-toast>
             <ion-card>
               <div class="flex flex-col">
                 <div class="flex flex-row justify-between">
@@ -35,6 +41,7 @@ import { Product } from 'src/app/shared/models/product.model';
               </ion-card-content>
             </ion-card>
         </ion-content>
+        
   `,
   styles: [``],
 })
@@ -43,8 +50,10 @@ export class ProductDetailModalComponent {
 
   amount = signal(0)
   newQuantity = signal(0)
+  showAlert = signal(false)
+  alertMessage = signal('')
 
-  constructor(private modalCtrl: ModalController) { }
+  constructor(private modalCtrl: ModalController, private productService: ProductsService) { }
 
   ngOnInit(): void {
     this.newQuantity.set(this.product.quantity)
@@ -56,8 +65,13 @@ export class ProductDetailModalComponent {
   }
 
   subtract() {
-    this.newQuantity.update((value) => value - 1)
-    this.amount.update((value) => value - 1)
+    if (this.newQuantity() > 0) {
+      this.newQuantity.update((value) => value - 1)
+      this.amount.update((value) => value - 1)
+    } else {
+      this.alertMessage.update(_ => "Nenhuma unidade disponível")
+      this.showAlert.update(_ => true)
+    }
   }
 
   cancel() {
@@ -65,7 +79,9 @@ export class ProductDetailModalComponent {
   }
 
   confirm() {
-    return this.modalCtrl.dismiss(this.newQuantity, 'confirm');
+    this.productService.updateProduct(this.product.id, this.newQuantity()).subscribe(res => {
+      this.modalCtrl.dismiss(this.newQuantity, 'confirm');
+    })
   }
 
 }
