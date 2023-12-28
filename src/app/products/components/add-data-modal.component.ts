@@ -72,12 +72,9 @@ export class AddDataModalComponent {
   }
 
   confirm() {
-    this.productService.addProducts(this.form.controls.branch.value!.id, this.form.value, this.data)
-    // .subscribe((res) => {
-    //   console.log(res)
-
-    //   this.modalCtrl.dismiss({ columns: this.form.value, data: this.data }, 'confirm');
-    // })
+    this.productService.addProducts(this.form.controls.branch.value!.id, this.form.value, this.data)?.subscribe((_) => {
+      this.modalCtrl.dismiss();
+    })
   }
 
   readExcel(event: any) {

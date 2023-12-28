@@ -47,6 +47,7 @@ import { Product } from 'src/app/shared/models/product.model';
 })
 export class ProductDetailModalComponent {
   @Input() product!: Product;
+  @Input() branchId!: string;
 
   amount = signal(0)
   newQuantity = signal(0)
@@ -79,7 +80,7 @@ export class ProductDetailModalComponent {
   }
 
   confirm() {
-    this.productService.updateProduct(this.product.id, this.newQuantity()).subscribe(res => {
+    this.productService.updateProduct(this.product.id, this.branchId, this.newQuantity()).subscribe(res => {
       this.modalCtrl.dismiss(this.newQuantity, 'confirm');
     })
   }

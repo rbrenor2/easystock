@@ -96,6 +96,10 @@ export class ProductsPage {
       component: AddDataModalComponent,
     });
     modal.present();
+
+    from(modal.onWillDismiss()).subscribe(_ => {
+      this.onSearch()
+    })
   }
 
   async onTapProduct(product: Product) {
@@ -105,6 +109,7 @@ export class ProductsPage {
       breakpoints: [0.5, 0.75],
       componentProps: {
         product,
+        branchId: this.branch.value!.id
       }
     });
     modal.present();

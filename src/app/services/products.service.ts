@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Firestore, and, collection, doc, getDocs, limit, or, orderBy, query, runTransaction, startAfter, updateDoc, where } from '@angular/fire/firestore';
-import { from, of } from 'rxjs';
+import { forkJoin, from, of } from 'rxjs';
 import { AuthService } from './auth.service';
 
 @Injectable({
@@ -74,27 +74,29 @@ export class ProductsService {
 
   addProducts(branchId: string, columns: any, data: any[]) {
     try {
-      data.forEach((item: any) => {
-        of(runTransaction(this.firestore, async (transaction) => {
-          const productRef = doc(this.firestore, this.productsPath, item[columns["id"]].toString());
+      const transactions = data.map((item: any) => {
+        return from(runTransaction(this.firestore, async (transaction) => {
+          const productRef = doc(this.firestore, this.productsPath, `${branchId}_${item[columns["id"]]}`.toString());
           const productDoc = await transaction.get(productRef);
 
-          if (productDoc.exists()) {
+          if (productDoc.exists() && productDoc.data()["branchId"] == branchId) {
             const updatedProduct = { quantity: productDoc.data()["quantity"] + item[columns["quantity"]] }
             transaction.update(productRef, updatedProduct)
           } else {
             transaction.set(productRef, { id: item[columns["id"]].toString(), name: item[columns["name"]], quantity: item[columns["quantity"]], price: item[columns["price"]], branchId })
           }
-        })).subscribe((res) => console.log(res));
+        }))
       })
+
+      return forkJoin(transactions)
     } catch (e) {
-      console.error(e);
+      return of(e)
     }
   }
 
-  updateProduct(id: string, newQuantity: number) {
+  updateProduct(id: string, branchId: string, newQuantity: number) {
     try {
-      return from(updateDoc(doc(this.firestore, this.productsPath, id.toString()), { quantity: newQuantity }))
+      return from(updateDoc(doc(this.firestore, this.productsPath, `${branchId}_${id}`), { quantity: newQuantity }))
     } catch (e) {
       return of(e)
     }
