@@ -4,7 +4,10 @@ import { ProductDetailModalComponent } from './components/product-detail-modal.c
 import { AddDataModalComponent } from './components/add-data-modal.component';
 import { Product } from '../shared/models/product.model';
 import { ProductsService } from '../services/products.service';
-import { from } from 'rxjs';
+import { Observable, from, tap } from 'rxjs';
+import { Branch } from '../shared/models/branch.model';
+import { BranchesService } from '../services/branches.service';
+import { FormControl } from '@angular/forms';
 
 @Component({
   selector: 'es-products-page',
@@ -14,7 +17,18 @@ import { from } from 'rxjs';
           <ion-title>Produtos</ion-title>
         </ion-toolbar>
         <ion-toolbar>
-          <ion-searchbar [debounce]="1000" (ionInput)="onSearch($event)" show-clear-button="focus" [value]="filter" placeholder="Busque produtos por nome"></ion-searchbar>
+          <ion-item>
+            <ion-select [formControl]="branch" label="Filial">
+                @for (branch of branches$ | async; track $index) {
+                  <ion-select-option [value]="branch">{{branch.displayName}}</ion-select-option>
+                } @empty {
+                  Nenhuma filial cadastrada
+                }
+            </ion-select>
+          </ion-item>
+        </ion-toolbar>
+        <ion-toolbar>
+          <ion-searchbar [debounce]="1000" [formControl]="filter" (ionInput)="onSearch()" show-clear-button="focus" [value]="filter" placeholder="Busque produtos por nome"></ion-searchbar>
         </ion-toolbar>
       </ion-header>
 
@@ -42,24 +56,34 @@ import { from } from 'rxjs';
 })
 export class ProductsPage {
 
-  filter: string = ""
+  filter = new FormControl("")
+  branch = new FormControl({ id: "" })
 
   products: Product[] = []
 
-  constructor(private modalCtrl: ModalController, private productsService: ProductsService) { }
+  branches$: Observable<Branch[]>;
 
-  ngOnInit(): void {
-    this.onLoadMore(null)
+  constructor(private modalCtrl: ModalController, private productsService: ProductsService, private branchService: BranchesService) {
+    this.branches$ = this.branchService.list().pipe(tap(branches => {
+      this.branch.setValue(branches[0])
+      this.onLoadMore(null)
+    }))
+
+    this.branch.valueChanges.subscribe((branch) => {
+      this.productsService.getProductsPage(branch!.id, this.filter.value ?? undefined).subscribe((res) => {
+        this.products = res.docs.map(doc => doc.data()) as Product[]
+      })
+    })
   }
 
-  onSearch(event: any) {
-    this.productsService.getProductsPage(event.target.value).subscribe((res) => {
+  onSearch() {
+    this.productsService.getProductsPage(this.branch.value!.id, this.filter.value ?? "").subscribe((res) => {
       this.products = res.docs.map(doc => doc.data()) as Product[]
     })
   }
 
   onLoadMore(event: any) {
-    this.productsService.getProductsPage().subscribe((res) => {
+    this.productsService.getProductsPage(this.branch.value!.id).subscribe((res) => {
       this.products = res.docs.map(doc => doc.data()) as Product[]
       setTimeout(() => {
         (event as InfiniteScrollCustomEvent)?.target?.complete();
@@ -86,7 +110,7 @@ export class ProductsPage {
     modal.present();
 
     from(modal.onWillDismiss()).subscribe(_ => {
-      this.onLoadMore(null)
+      this.onSearch()
     })
   }
 
