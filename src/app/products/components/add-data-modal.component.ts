@@ -1,7 +1,10 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
+import { Observable } from 'rxjs';
+import { BranchesService } from 'src/app/services/branches.service';
 import { ProductsService } from 'src/app/services/products.service';
+import { Branch } from 'src/app/shared/models/branch.model';
 import * as XLSX from 'xlsx'
 
 @Component({
@@ -21,6 +24,13 @@ import * as XLSX from 'xlsx'
       <ion-content class="ion-padding">
           <ion-item>
             <form [formGroup]="form">
+              <ion-select formControlName="branch" label="Filial">
+                @for (branch of branches$ | async; track $index) {
+                  <ion-select-option [value]="branch">{{branch.displayName}}</ion-select-option>
+                } @empty {
+                  Nenhuma filial cadastrada
+                }
+              </ion-select>
               <ion-input label="Código/Identificador" formControlName="id"></ion-input>
               <ion-input label="Nome" formControlName="name"></ion-input>
               <ion-input label="Quantidade" formControlName="quantity"></ion-input>
@@ -45,19 +55,24 @@ export class AddDataModalComponent {
     id: ['Codigo'],
     name: ['Produto'],
     quantity: ['Quantidade'],
-    price: ['Preco']
+    price: ['Preco'],
+    branch: [{ id: '' }]
   })
 
   data: any;
 
-  constructor(private modalCtrl: ModalController, private fb: FormBuilder, private productService: ProductsService) { }
+  branches$: Observable<Branch[]>;
+
+  constructor(private modalCtrl: ModalController, private fb: FormBuilder, private productService: ProductsService, private branchService: BranchesService) {
+    this.branches$ = this.branchService.list()
+  }
 
   cancel() {
     return this.modalCtrl.dismiss(null, 'cancel');
   }
 
   confirm() {
-    this.productService.addProducts(this.form.value, this.data)
+    this.productService.addProducts(this.form.controls.branch.value!.id, this.form.value, this.data)
     // .subscribe((res) => {
     //   console.log(res)
 

@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Firestore, collection, doc, getDocs, limit, or, orderBy, query, runTransaction, startAfter, updateDoc, where } from '@angular/fire/firestore';
+import { Firestore, and, collection, doc, getDocs, limit, or, orderBy, query, runTransaction, startAfter, updateDoc, where } from '@angular/fire/firestore';
 import { from, of } from 'rxjs';
 import { AuthService } from './auth.service';
 
@@ -17,9 +17,9 @@ export class ProductsService {
     this.productsPath = `organizations/${this.authService.organization()}/products`
   }
 
-  getProductsPage(filter?: string) {
+  getProductsPage(branchId: string, filter?: string) {
     if (filter) {
-      const constraints = where("name", '>=', filter)
+      const constraints = and(where("name", '>=', filter), where("branchId", '==', branchId))
 
       if (this.currentPage() === 1) {
         const first = query(
@@ -48,6 +48,7 @@ export class ProductsService {
       if (this.currentPage() === 1) {
         const first = query(
           collection(this.firestore, this.productsPath),
+          where("branchId", '==', branchId),
           orderBy("name"),
           limit(this.pageSize())
         );
@@ -58,6 +59,7 @@ export class ProductsService {
         const next =
           query(
             collection(this.firestore, this.productsPath),
+            where("branchId", '==', branchId),
             orderBy("name"),
             startAfter(this.currentPage() * this.pageSize()),
             limit(this.pageSize())
@@ -70,7 +72,7 @@ export class ProductsService {
 
   }
 
-  addProducts(columns: any, data: any[]) {
+  addProducts(branchId: string, columns: any, data: any[]) {
     try {
       data.forEach((item: any) => {
         of(runTransaction(this.firestore, async (transaction) => {
@@ -81,12 +83,11 @@ export class ProductsService {
             const updatedProduct = { quantity: productDoc.data()["quantity"] + item[columns["quantity"]] }
             transaction.update(productRef, updatedProduct)
           } else {
-            transaction.set(productRef, { id: item[columns["id"]].toString(), name: item[columns["name"]], quantity: item[columns["quantity"]], price: item[columns["price"]] })
+            transaction.set(productRef, { id: item[columns["id"]].toString(), name: item[columns["name"]], quantity: item[columns["quantity"]], price: item[columns["price"]], branchId })
           }
         })).subscribe((res) => console.log(res));
       })
     } catch (e) {
-      // This will be a "population is too big" error.
       console.error(e);
     }
   }
