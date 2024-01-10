@@ -2,6 +2,8 @@ import { Injectable, inject, signal } from '@angular/core';
 import { Firestore, and, collection, doc, getDocs, limit, or, orderBy, query, runTransaction, startAfter, updateDoc, where } from '@angular/fire/firestore';
 import { forkJoin, from, of } from 'rxjs';
 import { AuthService } from './auth.service';
+import { Log, LogAction } from '../shared/models/log.model';
+import { LogsService } from './logs.service';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +15,7 @@ export class ProductsService {
   currentPage = signal(1)
   pageSize = signal(15)
 
-  constructor(private authService: AuthService) {
+  constructor(private authService: AuthService, private logService: LogsService) {
     this.productsPath = `organizations/${this.authService.organization()}/products`
   }
 
@@ -87,8 +89,17 @@ export class ProductsService {
           }
         }))
       })
+      
+      const log = {
+        action: LogAction.ADD_PRODUCTS,
+        userId: "PLACEHOLDER_USER",
+        organizationId: this.authService.organization(),
+        productNumber: transactions.length
+      } as Log
 
-      return forkJoin(transactions)
+      const logRequest = this.logService.log(log)
+
+      return forkJoin([...transactions, logRequest])
     } catch (e) {
       return of(e)
     }
