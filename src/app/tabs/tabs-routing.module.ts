@@ -15,7 +15,10 @@ const routes: Routes = [
         path: 'data',
         loadChildren: () => import('../data/data.module').then(m => m.DataModule)
       },
-
+      {
+        path: 'logs',
+        loadChildren: () => import('../logs/logs.module').then(m => m.LogsPageModule)
+      },
       {
         path: '',
         redirectTo: '/tabs/products',
