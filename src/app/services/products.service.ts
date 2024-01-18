@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { Firestore, and, collection, doc, getDocs, limit, or, orderBy, query, runTransaction, startAfter, updateDoc, where } from '@angular/fire/firestore';
 import { forkJoin, from, of } from 'rxjs';
 import { AuthService } from './auth.service';
-import { Log, LogAction } from '../shared/models/log.model';
+import { Document, Log, LogAction } from '../shared/models/log.model';
 import { LogsService } from './logs.service';
 
 @Injectable({
@@ -76,7 +76,10 @@ export class ProductsService {
 
   addProducts(branchId: string, columns: any, data: any[]) {
     try {
+      const products: Document[] = []
+
       const transactions = data.map((item: any) => {
+        products.push({ productName: item[columns["name"]], quantity: item[columns["quantity"]], branchId })
         return from(runTransaction(this.firestore, async (transaction) => {
           const productRef = doc(this.firestore, this.productsPath, `${branchId}_${item[columns["id"]]}`.toString());
           const productDoc = await transaction.get(productRef);
@@ -89,13 +92,14 @@ export class ProductsService {
           }
         }))
       })
-      
+
       const log = {
         action: LogAction.ADD_PRODUCTS,
         userId: "PLACEHOLDER_USER",
         organizationId: this.authService.organization(),
-        productNumber: transactions.length
-      } as Log
+        productNumber: transactions.length,
+        documents: products
+      } as unknown as Log
 
       const logRequest = this.logService.log(log)
 

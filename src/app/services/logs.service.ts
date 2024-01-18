@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Firestore, doc, setDoc } from '@angular/fire/firestore';
+import { Firestore, addDoc, collection } from '@angular/fire/firestore';
 import { AuthService } from './auth.service';
 import { from } from 'rxjs';
 import { Log } from '../shared/models/log.model';
@@ -9,14 +9,16 @@ import { Log } from '../shared/models/log.model';
 })
 export class LogsService {
   firestore: Firestore = inject(Firestore);
-  logsPath:string;
+  logsPath: string;
 
   constructor(private authService: AuthService) {
     this.logsPath = `organizations/${this.authService.organization()}/logs`
   }
 
   log(log: Log) {
-    const logRef = doc(this.firestore, this.logsPath, `${log.action}_${log.product}`.toString());
-    return from(setDoc(logRef, log))   
+    const date = new Date()
+    const logRef = collection(this.firestore, this.logsPath);
+
+    return from(addDoc(logRef, { ...log, date }))
   }
 }
