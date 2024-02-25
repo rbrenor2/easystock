@@ -25,14 +25,14 @@ export class BranchesService {
           constraints,
           orderBy("displayName")
         )
-      )).pipe(map(res => res.docs.map(doc => doc.data()) as Branch[]), tap(value => console.log(value)))
+      )).pipe(map(res => res.docs.map(doc => doc.data()) as Branch[]))
     } else {
       return from(getDocs(
         query(
           collection(this.firestore, this.branchesPath),
           orderBy("displayName")
         )
-      )).pipe(map(res => res.docs.map(doc => doc.data()) as Branch[]), tap(value => console.log(value)))
+      )).pipe(map(res => res.docs.map(doc => doc.data()) as Branch[]))
     }
   }
 }

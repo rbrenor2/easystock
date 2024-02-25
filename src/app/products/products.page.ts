@@ -8,6 +8,7 @@ import { Observable, from, tap } from 'rxjs';
 import { Branch } from '../shared/models/branch.model';
 import { BranchesService } from '../services/branches.service';
 import { FormControl } from '@angular/forms';
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'es-products-page',
@@ -15,6 +16,11 @@ import { FormControl } from '@angular/forms';
        <ion-header [translucent]="true">
        <ion-toolbar>
           <ion-title>Produtos</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="logout()">
+              <ion-icon name="log-out"></ion-icon>
+            </ion-button>
+          </ion-buttons>
         </ion-toolbar>
         <ion-toolbar>
           <ion-item>
@@ -63,7 +69,7 @@ export class ProductsPage {
 
   branches$: Observable<Branch[]>;
 
-  constructor(private modalCtrl: ModalController, private productsService: ProductsService, private branchService: BranchesService) {
+  constructor(private modalCtrl: ModalController, private productsService: ProductsService, private branchService: BranchesService, private authService: AuthService) {
     this.branches$ = this.branchService.list().pipe(tap(branches => {
       this.branch.setValue(branches[0])
       this.onLoadMore(null)
@@ -117,6 +123,10 @@ export class ProductsPage {
     from(modal.onWillDismiss()).subscribe(_ => {
       this.onSearch()
     })
+  }
+
+  logout() {
+    this.authService.logout();
   }
 
 }

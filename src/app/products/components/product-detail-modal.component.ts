@@ -40,8 +40,7 @@ import { Product } from 'src/app/shared/models/product.model';
                 <ion-title></ion-title>
               </ion-card-content>
             </ion-card>
-        </ion-content>
-        
+        </ion-content>   
   `,
   styles: [``],
 })
